@@ -1,0 +1,154 @@
+<project name="Accounts Test" default="Junit4-Suite" basedir=".">
+	<property name="app.name" value="test" />
+	<property name="build" value="build" />
+	<property name="build.dir" value="bin" />
+	<property name="source.dir" value="src" />
+	<property name="reports" location="reports"/>
+
+<!--For better all usage put the junit jar in ant/lib directory-->
+	<path id="libraries">
+		<pathelement location="${java.home}/../lib/tools.jar" />
+		<fileset dir="${basedir}/lib">
+			<include name="junit-4.2.jar" />
+		</fileset>
+	</path>
+
+
+	<antversion property="antversion"/>
+	
+	<target name="clean" description="Delete all result dirs to start with a clean build.">
+		<delete dir="${build.dir}" />
+		<delete dir="${build}" />
+		<delete dir="${reports}/raw" />			
+		<delete dir="${reports}/batch" />	
+		<delete dir="${reports}" />			
+		 
+    </target>
+
+	<target name="compileJava" depends="clean">
+	    <mkdir dir="${build}" />
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${reports}" />
+		<mkdir dir="${reports}/raw" />
+		 
+		
+		<echo message="Compiling Java  Source files "/>
+		<echo message="Current Ant version is  ${ant.version}"/>
+		<echo message="Ant installation dir is ${ant.home}"/>
+
+		<javac includeantruntime='true' srcdir="${source.dir}" destdir="${build.dir}">		    
+ 		    <classpath>				  
+				<pathelement location="${basedir}/lib/slf4j-api-1.7.5.jar" />
+			</classpath>
+			<include name="com/server/bank/*.java" />			 
+		</javac>
+	</target>
+
+
+
+	<target name="compiletests" depends="compileJava">
+		<echo message="Compiling Java Test source Classes"/>		 
+		 
+		<javac includeantruntime='true' srcdir="${source.dir}" destdir="${build.dir}">
+			<classpath>				  
+				<pathelement location="${basedir}/lib/junit-4.2.jar" />
+			</classpath>
+			<include name="com/server/test/*.java" />
+		</javac>
+	</target>
+
+	<target name="JavaTest" depends="compiletests">
+		<echo message="Running the Junit All Test.."/>
+		 
+		<java fork="yes" classname="junit.textui.TestRunner" taskname="junit" 
+			failonerror="true">
+			<arg value="com.server.test.BankTestSuite" />
+			<classpath>
+				<pathelement location="${basedir}/lib/junit-4.2.jar" />	
+				<pathelement location="${basedir}/lib/slf4j-api-1.7.5.jar" />			 
+				<pathelement location="bin" />
+				<pathelement path="" />
+				<pathelement path="${java.class.path}" />
+			</classpath>
+		</java>
+	</target>
+
+
+	<target name="Junit4-Suite" depends="compiletests">
+		<echo message="Running the Junit4-SuiteTest Target..">
+		</echo>
+		<junit printsummary="yes" fork="yes" haltonfailure="no" showoutput="yes">
+
+			<classpath>
+				<pathelement location="${basedir}/lib/junit-4.2.jar" />	
+				<pathelement location="${basedir}/lib/slf4j-api-1.7.5.jar" />					 
+				<pathelement location="${build.dir}" />
+				<pathelement path="" />
+				<pathelement path="${java.class.path}" />
+			</classpath>
+			 
+			<test name="com.server.test.BankTestSuite" haltonfailure="no" outfile="test-result" 
+				todir="${reports}">
+			     <formatter type="xml"/> 
+			 </test>   	 
+		</junit>
+
+	</target>
+
+	 
+
+	<target name="AllTests" depends="compiletests">
+		<echo message="Running the Junit All Tests.."/>		 
+		
+		<junit printsummary="yes" fork="yes" haltonfailure="yes" showoutput="yes" 
+		haltonerror="yes" >
+			<classpath>	
+				<pathelement location="${basedir}/lib/junit-4.2.jar" />		
+				<pathelement location="${build.dir}" />
+				<pathelement path="" />
+				<pathelement path="${java.class.path}" />
+			</classpath>
+			 
+			<test name="test.com.bank.AllJUnitTests" haltonfailure="no" outfile="test-result" 
+				todir="${reports}">
+			     <formatter type="xml"/> 
+			 </test>      
+			  
+		</junit>
+	</target>
+	
+	<target name ="gen-report" depends="Junit4-Suite">
+			<junitreport  todir="${reports}">
+			  <fileset dir="${reports}">
+			    <include name="test-result.xml"/>
+			  </fileset>
+			  <report format="frames" todir="${reports}/html"/>
+			</junitreport>
+	  </target>
+	
+	<target name ="Gen_Report_Styled" depends="Junit4-Suite">
+			<junitreport todir="${reports}">
+			  <fileset dir="${reports}">
+			    <include name="test-result.xml"/>
+			  </fileset>
+			  <report todir="${reports}/custom"   styledir="styles"   format="frames">
+	               <!--param name="key1" expression="value1"/>
+	               <param name="key2" expression="value2"/-->
+	               </report>
+			</junitreport>
+	  </target>
+	
+	 
+
+  <target name="BuildJar" depends="compileJava">    
+      
+      <echo message="Running the Jar task."/>		 
+		
+    <jar destfile="${build}/app.jar"
+       basedir="${build.dir}"
+       includes="com/server/bank/*.class" />
+  </target>
+
+
+</project>
+
